@@ -26,6 +26,7 @@ namespace ChessEngine.Core
 
     public class RookMoveValidation : IMoveValidation
     {
+
         public bool ValidateMove(BoardCell[,] cells, IPiece piece, Coordinates destination)
         {
             bool isOccupiedByTeammember = cells[destination.Row, destination.Column].Piece != null && cells[destination.Row, destination.Column].Piece?.Color == piece.Color;
@@ -94,6 +95,8 @@ namespace ChessEngine.Core
         {
             IList<Coordinates> validMoves = new List<Coordinates>();
 
+            // Bottom
+
             validMoves.Add(new Coordinates()
             {
                 Row = piece.Coordinates.Row - 2,
@@ -102,9 +105,24 @@ namespace ChessEngine.Core
 
             validMoves.Add(new Coordinates()
             {
-                Row = piece.Coordinates.Row - 1,
-                Column = piece.Coordinates.Column + 3
+                Row = piece.Coordinates.Row - 2,
+                Column = piece.Coordinates.Column - 1
             });
+
+            validMoves.Add(new Coordinates()
+            {
+                Row = piece.Coordinates.Row - 1,
+                Column = piece.Coordinates.Column + 2
+            });
+
+
+            validMoves.Add(new Coordinates()
+            {
+                Row = piece.Coordinates.Row - 1,
+                Column = piece.Coordinates.Column - 2
+            });
+
+            // Top
 
             validMoves.Add(new Coordinates()
             {
@@ -114,21 +132,35 @@ namespace ChessEngine.Core
 
             validMoves.Add(new Coordinates()
             {
-                Row = piece.Coordinates.Row + 1,
-                Column = piece.Coordinates.Column -3
+                Row = piece.Coordinates.Row + 2,
+                Column = piece.Coordinates.Column + 1
             });
 
-            return validMoves.Where(move => move.Row < 8 && move.Row >= 0 && move.Column <8 && move.Column >= 0).ToList();
+            validMoves.Add(new Coordinates()
+            {
+                Row = piece.Coordinates.Row + 1,
+                Column = piece.Coordinates.Column - 2
+            });
+
+
+            validMoves.Add(new Coordinates()
+            {
+                Row = piece.Coordinates.Row + 1,
+                Column = piece.Coordinates.Column + 2
+            });
+
+            return validMoves.Where(move => move.Row < 8 && move.Row >= 0 && move.Column < 8 && move.Column >= 0).ToList();
         }
 
 
         public bool ValidateMove(BoardCell[,] cells, IPiece piece, Coordinates destination)
         {
-            if (cells[destination.Row, destination.Column].Piece != null && cells[destination.Row, destination.Column].Piece?.Color == piece.Color) return false;
+            bool cellIsOccupiedByTeammember = cells[destination.Row, destination.Column].Piece != null && cells[destination.Row, destination.Column].Piece?.Color == piece.Color;
+            if (cellIsOccupiedByTeammember) return false;
+
             IList<Coordinates> validMoves = FindValidMoves(piece);
-            // find valid moves
-            if (!validMoves.Contains(destination)) return false;
-            return true;
+
+            return validMoves.Contains(destination);
         }
     }
     public class BishopMoveValidation : IMoveValidation
@@ -483,11 +515,14 @@ namespace ChessEngine.Core
     }
 
     // TODO implement EnPassent
+    // TODO refactor in knight validation style by setting up a list of valid moves and validating against it
     public class PawnMoveValidation : IMoveValidation
     {
+
         public bool ValidateMove(BoardCell[,] cells, IPiece piece, Coordinates destination)
         {
             if (Math.Abs(piece.Coordinates.Row - destination.Row) > 2) return false;
+            if (Math.Abs(piece.Coordinates.Column - destination.Column) > 1) return false;
 
             Pawn pawn = (Pawn)piece;
             bool isForwardMove = piece.Coordinates.Row != destination.Row && piece.Coordinates.Column == destination.Column;
@@ -496,18 +531,35 @@ namespace ChessEngine.Core
             {
                 if (isForwardMove)
                 {
+                    bool isSingleMove = Math.Abs(piece.Coordinates.Row - destination.Row) == 1;
                     if (cells[destination.Row, destination.Column].Piece != null) return false;
                     if (piece.Coordinates.Row > destination.Row)
                     {
-                        if (cells[piece.Coordinates.Row - 1, destination.Column].Piece != null) return false;
+                        if (isSingleMove)
+                        {
+                            if (cells[piece.Coordinates.Row - 1, destination.Column].Piece != null) return false;
+                        }
+                        else
+                        {
+                            if (cells[piece.Coordinates.Row - 2, destination.Column].Piece != null) return false;
+                        }
                     }
                     else
                     {
-                        if (cells[piece.Coordinates.Row + 1, destination.Column].Piece != null) return false;
+                        if (isSingleMove)
+                        {
+                            if (cells[piece.Coordinates.Row + 1, destination.Column].Piece != null) return false;
+                        }
+                        else
+                        {
+                            if (cells[piece.Coordinates.Row + 2, destination.Column].Piece != null) return false;
+                        }
                     }
 
                     return true;
                 }
+
+                return false;
             }
 
             if (Math.Abs(piece.Coordinates.Row - destination.Row) > 1) return false;

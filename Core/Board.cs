@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace ChessEngine.Core
 {
 
-    public interface IBoard
+    public interface IBoard:IEnumerable<BoardCell>
     {
         void Move(IPiece piece, Coordinates destination);
         void Print();
@@ -14,6 +16,15 @@ namespace ChessEngine.Core
     {
         public BoardCell[,] Cells = new BoardCell[8, 8];
 
+        public IEnumerator<BoardCell> GetEnumerator(){
+            foreach (BoardCell cell in Cells){
+                yield return cell;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator(){
+            return GetEnumerator();
+        }
 
         public Board()
         {
@@ -67,7 +78,7 @@ namespace ChessEngine.Core
             Cells[7, 4].Piece = new Piece(PieceType.KING, Color.WHITE, new Coordinates{Row=7, Column=4});
             Cells[7, 5].Piece = new Piece(PieceType.BISHOP, Color.WHITE, new Coordinates{Row=7, Column=5});
             Cells[7, 6].Piece = new Piece(PieceType.KNIGHT, Color.WHITE, new Coordinates{Row=7, Column=6});
-            Cells[7, 7].Piece = new Piece(PieceType.ROOK, Color.WHITE, new Coordinates{Row=6, Column=7});
+            Cells[7, 7].Piece = new Piece(PieceType.ROOK, Color.WHITE, new Coordinates{Row=7, Column=7});
             Cells[6, 0].Piece = new Pawn(PieceType.PAWN, Color.WHITE, new Coordinates{Row=6, Column=0});
             Cells[6, 1].Piece = new Pawn(PieceType.PAWN, Color.WHITE, new Coordinates{Row=6, Column=1});
             Cells[6, 2].Piece = new Pawn(PieceType.PAWN, Color.WHITE, new Coordinates{Row=6, Column=2});
@@ -88,7 +99,21 @@ namespace ChessEngine.Core
             Cells[piece.Coordinates.Row, piece.Coordinates.Column].Piece = null;
         }
 
-        private bool ValidateMove(IPiece piece, Coordinates destination)
+        // TODO Refactor => too slow to loop over the whole board
+        public IList<Coordinates> FindValidMoves(IPiece piece){
+            IList<Coordinates> coordinates = new List<Coordinates>();
+
+            foreach (BoardCell cell in Cells){
+                if (ValidateMove(piece, cell.Coordinates)){
+                    coordinates.Add(cell.Coordinates);
+                }
+            }
+        
+            return coordinates;
+        }
+
+
+        public bool ValidateMove(IPiece piece, Coordinates destination)
         {
             switch (piece.Type)
             {

@@ -5,8 +5,8 @@ namespace ChessEngine.Core
 {
     public class Move
     {
-        IPiece Piece { get; }
-        Coordinates Coordinates { get; }
+        public IPiece Piece { get; }
+        public Coordinates Coordinates { get; }
 
         public Move(IPiece piece, Coordinates coordinates)
         {
